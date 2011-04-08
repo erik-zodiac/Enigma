@@ -1,3 +1,4 @@
+#author: kiryx7 [at] gmail.com
 import sys,copy,struct
 
 alpha_size = 256;
@@ -34,6 +35,16 @@ def generate_perms(key):
 	for p in r:
 		out2.append(reverse_perm(out2[p]));
 	return out2;
+def inc_and_check(i):
+	offsets[i]+=1;
+	if(offsets[i]>=alpha_size):
+		offsets[i]=0;
+		if(i+1<len(offsets)):
+			inc_and_check(i+1);
+		
+def increment_offsets():
+	inc_and_check(0);	
+	
 def read_file(file):
 	file_arr = []
 	f = open(file,"rb")
@@ -47,7 +58,6 @@ def read_file(file):
 	finally:
 		f.close()
 	return file_arr
-	#print file_arr
 
 
 def write_file(file,file_arr):
@@ -55,20 +65,18 @@ def write_file(file,file_arr):
 	try:
 		for i in file_arr:
 			f.write(chr(i))
-			#f.write(struct.pack("i",i));
 	finally:
 		f.close()
 
 def cipher_file(file_arr):
 	file_arr2 = []
-	#print len(file_arr)
 	for i in file_arr:
 		file_arr2.append(cipher_byte(i,perm_list,False))
+		increment_offsets()
 	return file_arr2
 
 def cipher_byte(byte,perm_list,verbose):
 	#pierwsze permutacje
-	#offsets = [1,3]
 	if(verbose):
 		print "In:",byte
 	for p in range(len(perm_list)/2):
@@ -91,16 +99,11 @@ def cipher_byte(byte,perm_list,verbose):
 		pre = byte;
 		p_rev = perm_list[p];
 		p_orig = perm_list[p-(len(perm_list)/2+1)];
-		#byte = p_rev[p_orig[((p_rev[byte]+offsets[off_idx])%lp)]%lp];
-	#	byte = perm_list[p][(byte + offsets[off_idx]) % alpha_size ]
 		byte = (p_rev[byte] - offsets[off_idx] )% alpha_size
-		#byte = (p_orig.index(byte) - offsets[off_idx]) % alpha_size
 		if(verbose):
 			print "P':",p,"|O:",offsets[off_idx],":",pre,"->",byte
 
 	return byte;
-		#byte = p[byte + offset[p] % len(p)]
-	#byte = perm_list[len(perm_list)/2][byte];
 	
 	
 key = sys.argv[2];
@@ -121,24 +124,7 @@ if(verbose):
 		else:
 			print ""
 	print "\n"
-#print reverse_perm(perm_list[2]);
-
-#nextt = []
-#for i in range(8):
-	#nextt.append(cipher_byte(i,perm_list,verbose));
-
-#a = cipher_byte(0,perm_list,verbose);
-#print "wyn:",a
-#print "DECIPHERING"
-
-#b = cipher_byte(a,perm_list,verbose);
-#print "wyn:",b
-#for i in nextt:
-	#print cipher_byte(i,perm_list,verbose)
 
 a = read_file(filein)
 b = cipher_file(a);
 write_file(fileout,b)
-
-#for i in perm_list:
-	#print i
